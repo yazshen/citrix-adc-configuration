@@ -65,3 +65,94 @@ Citrix负载均衡通过rewrite脚本，可以在TCP请求的payload中插入pro
     SNIP接口：192.168.202.23
     服务器： 192.168.202.201
 
+![forward-client-ip](https://github.com/yazshen/citrix-adc-configuration/blob/master/images/forward-client-ip-04.png)
+
+![forward-client-ip](https://github.com/yazshen/citrix-adc-configuration/blob/master/images/forward-client-ip-05.png)
+
+### IPv6环境验证
+
+    客户端：fd00::192:168:202:200
+    VIP服务器： fd00::192:168:202:26
+    SNIP接口：fd00::192:168:202:23
+    服务器：fd00::192:168:202:201
+
+![forward-client-ip](https://github.com/yazshen/citrix-adc-configuration/blob/master/images/forward-client-ip-06.png)
+
+![forward-client-ip](https://github.com/yazshen/citrix-adc-configuration/blob/master/images/forward-client-ip-07.png)
+
+## TCP应用溯源功能（TCP Option）
+从Citrix ADC 13.0版本开始，支持在TCP Option字段插入客户端IP地址信息。这样的方法是通过在第一个数据包的TCP选项中发送客户端IP地址。如果后端服务器使用TCP选项读取客户端IP地址，则设备将使用TCP配置文件中的TCP选项号。 IP地址存于TCP选项号28（不限于28，可在TCP配置上定义）。 TCP选项方法在将客户端IP地址传送到后端服务器时包括插入和转发功能。在TCP选项配置中，设备添加了一个TCP选项28，以插入客户端IP地址并将其转发到后端服务器。
+
+![forward-client-ip](https://github.com/yazshen/citrix-adc-configuration/blob/master/images/forward-client-ip-08.png)
+
+注：如果启用TCP Option插入客户端IP地址，那么连接多路复用(Connection Multiplexing)功能将被禁止。
+
+### 配置方法
+测试版本：Citrix ADC 13.0 47.22
+
+进入System -> Profiles -> TCP Profile，创建一个新的TCP Profile。勾选“Client IP TCP Option”选项并定义Option Number，这里我们选择“28”
+
+![forward-client-ip](https://github.com/yazshen/citrix-adc-configuration/blob/master/images/forward-client-ip-09.png)
+
+进入Traffic Management -> Load Balancing -> Services，编辑相关Service。点击Profiles，选择TCP Profile为刚才创建的Profile。
+
+![forward-client-ip](https://github.com/yazshen/citrix-adc-configuration/blob/master/images/forward-client-ip-10.png)
+
+### IPv4环境验证
+
+    客户端：192.168.202.200
+    VIP服务器： 192.168.202.15
+    SNIP接口：192.168.202.13
+    服务器： 192.168.202.201
+
+![forward-client-ip](https://github.com/yazshen/citrix-adc-configuration/blob/master/images/forward-client-ip-11.png)
+
+### IPv6环境验证
+
+    客户端：fd00::192:168:202:200
+    VIP服务器： fd00::192:168:202:15
+    SNIP接口：fd00::192:168:202:13
+    服务器：fd00::192:168:202:201
+
+![forward-client-ip](https://github.com/yazshen/citrix-adc-configuration/blob/master/images/forward-client-ip-12.png)
+
+## Citrix负载均衡Syslog溯源
+除了可以把真实客户端IP地址转发给后端服务器，Citrix ADC自身还可以通过Syslog方式记录真实客户端IP地址信息。用户也可以通过Syslog发送到收集器并记录溯源。
+
+### 配置方法
+进入System -> Auditing -> Syslog，创建新的Syslog收集器
+
+![forward-client-ip](https://github.com/yazshen/citrix-adc-configuration/blob/master/images/forward-client-ip-13.png)
+
+创建Syslog Policy
+
+![forward-client-ip](https://github.com/yazshen/citrix-adc-configuration/blob/master/images/forward-client-ip-14.png)
+
+### IPv4环境验证
+
+    客户端：192.168.202.200
+    VIP服务器： 192.168.202.26
+    SNIP接口：192.168.202.23
+    服务器： 192.168.202.201
+
+    2020-01-20 15:28:08	Local0.Info	192.168.201.21	 2020/01/20:15:20:58  DC-ADC21 0-PPE-0 : TCP CONN_DELINK 1778 0 :  Source 192.168.202.200:54120 - Vserver 192.168.202.26:80 - NatIP 192.168.202.23:2500 - Destination 192.168.202.201:80 - Delink Time 2020/01/20:15:20:58  - Total_bytes_send 78 - Total_bytes_recv 355
+
+### IPv6环境验证
+
+    客户端：fd00::192:168:202:200
+    VIP服务器： fd00::192:168:202:26
+    SNIP接口：fd00::192:168:202:23
+    服务器：fd00::192:168:202:201
+
+    2020-01-20 15:39:00	Local0.Info	192.168.201.21	 2020/01/20:15:31:50  DC-ADC21 0-PPE-0 : TCP CONN_DELINK 2193 0 :  Source fd00::192:168:202:200:41860 - Vserver fd00::192:168:202:26:80 - NatIP fd00::192:168:202:23:2209 - Destination fd00::192:168:202:201:80 - Delink Time 2020/01/20:15:31:50  - Total_bytes_send 86 - Total_bytes_recv 355
+
+### NAT64环境验证
+
+    客户端：fd00::192:168:202:200
+    VIP服务器： fd00::192:168:202:26
+    SNIP接口：192.168.202.23
+    服务器：192.168.202.201
+
+    2020-01-21 13:41:52	Local0.Info	192.168.201.21	 2020/01/21:13:41:51  DC-ADC21 0-PPE-0 : TCP CONN_DELINK 5741 0 :  Source fd00::192:168:202:200:43460 - Vserver fd00::192:168:202:26:80 - NatIP 192.168.202.23:10058 - Destination 192.168.202.201:80 - Delink Time 2020/01/21:13:41:51  - Total_bytes_send 86 - Total_bytes_recv 355
+
+
