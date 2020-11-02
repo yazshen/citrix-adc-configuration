@@ -64,8 +64,10 @@ Citrix ADC不仅支持内置认证的用户系统，同时也支持通过外部�
 
 ### 启用TACACS Profile
 选择菜单：Worker Center -> Device Administration -> Device Admin Policy Sets -> Authorization Policy - Global Exceptions，创建一个新的Rule
++ 编辑Condition为：验证用户组是否为CitrixGroup
 + 选择刚才创建的TACACS Command Set
 + 选择刚才创建的TACACS Profile
+![mgmt-tacacs-ise](https://github.com/yazshen/citrix-adc-configuration/blob/master/images/mgmt-tacacs-ise-09a.png)
 
 ![mgmt-tacacs-ise](https://github.com/yazshen/citrix-adc-configuration/blob/master/images/mgmt-tacacs-ise-09.png)
 
