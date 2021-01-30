@@ -1,4 +1,4 @@
-# Citrix ADC转发真实客户端IP地址
+# Citrix ADC溯源真实客户端IP地址
 
 Citrix ADC 是一款应用交付和负载均衡解决方案，无论您的 Web、传统和云原生应用托管于何处，均可提供高质量的用户体验。
 Load Balancing是Citrix ADC的核心功能，客户端连接到Citrix ADC后，Citrix ADC通过Subnet IP(SNIP)作为源地址向后端服务器发起连接。
